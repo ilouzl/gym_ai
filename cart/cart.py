@@ -94,9 +94,9 @@ def play(e, policy, render = False,
 #     else:
 #         model = get_model(8)
 
-training_data = play(env, random_agent, min_score=50, num_of_episodes=10000)
+training_data = play(env, random_agent, min_score=50, num_of_episodes=3000)
 e = extract_data(training_data)
 print("Total %d good episodes" % (len(training_data)))
 print("Score Statistics: max = %d, avg = %d" %(e["scores"].max(), e["scores"].mean()))
 model.fit(e["obs"], e["action"],epochs=2)
-play(env, agent, verbose=1, num_of_episodes=100, render=True)
+play(env, agent, verbose=1, num_of_episodes=30)
