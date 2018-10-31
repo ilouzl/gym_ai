@@ -5,12 +5,21 @@ import numpy as np
 
 def get_model(input_dim):
     model = keras.models.Sequential()
-    model.add(keras.layers.Dense(200, input_dim=input_dim, kernel_initializer='random_uniform'))
+    model.add(keras.layers.Dense(128, input_dim=input_dim, kernel_initializer='random_uniform'))
     model.add(keras.layers.Activation('relu'))
-    model.add(keras.layers.Dense(200, input_dim=input_dim, kernel_initializer='random_uniform'))
+    model.add(keras.layers.Dropout(0.2))
+    model.add(keras.layers.Dense(256, kernel_initializer='random_uniform'))
     model.add(keras.layers.Activation('relu'))
-    model.add(keras.layers.Dense(10, kernel_initializer='random_uniform'))
+    model.add(keras.layers.Dropout(0.2))
+    model.add(keras.layers.Dense(512, kernel_initializer='random_uniform'))
     model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Dropout(0.2))
+    model.add(keras.layers.Dense(256, kernel_initializer='random_uniform'))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Dropout(0.2))
+    model.add(keras.layers.Dense(128, kernel_initializer='random_uniform'))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Dropout(0.2))
     model.add(keras.layers.Dense(1, kernel_initializer='random_uniform'))
     model.add(keras.layers.Activation('sigmoid'))
 
@@ -39,8 +48,8 @@ def agent(state):
     return np.round(model.predict(state.reshape(-1,8)))
 
 def play(e, policy, render = False, 
-            min_score=50, num_of_episodes=400, 
-            episode_len=200):   
+            min_score=50, num_of_episodes=100, 
+            episode_len=200, verbose=0):   
     episode_memory = []
     prev_obs = np.asarray([0,0,0,0])
     for i_episode in range(num_of_episodes):
@@ -64,7 +73,8 @@ def play(e, policy, render = False,
             memory.append(state)
 
             if done:
-                print("Episode {} finished after {} timesteps".format(i_episode, t+1))
+                if verbose > 0:
+                    print("Episode {} finished after {} timesteps".format(i_episode, t+1))
                 if score > min_score:
                     tmp = [memory, score]
                     episode_memory.append(tmp)
@@ -72,14 +82,21 @@ def play(e, policy, render = False,
     return episode_memory
 
 
-min_score = 40
-for _ in range(10):
-    training_data = play(env, agent, min_score=min_score)
-    if training_data != []:
-        e = extract_data(training_data)
-        print("Total %d good episodes" % (len(training_data)))
-        print("Score Statistics: max = %d, avg = %d" %(e["scores"].max(), e["scores"].mean()))
-        min_score += 10
-        model.fit(e["obs"], e["action"],epochs=1)
-    else:
-        model = get_model(4)
+# min_score = 50
+# for _ in range(20):
+#     training_data = play(env, agent, min_score=min_score)
+#     if training_data != []:
+#         e = extract_data(training_data)
+#         print("Total %d good episodes" % (len(training_data)))
+#         print("Score Statistics: max = %d, avg = %d" %(e["scores"].max(), e["scores"].mean()))
+#         min_score += 10
+#         model.fit(e["obs"], e["action"],epochs=1)
+#     else:
+#         model = get_model(8)
+
+training_data = play(env, random_agent, min_score=50, num_of_episodes=10000)
+e = extract_data(training_data)
+print("Total %d good episodes" % (len(training_data)))
+print("Score Statistics: max = %d, avg = %d" %(e["scores"].max(), e["scores"].mean()))
+model.fit(e["obs"], e["action"],epochs=2)
+play(env, agent, verbose=1, num_of_episodes=100, render=True)
