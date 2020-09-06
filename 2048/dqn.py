@@ -12,7 +12,7 @@ env = gym.make('2048-v0')
 env.reset()
  
 NUM_OF_ACTIONS = env.action_space.n
-STATE_SIZE = env.observation_space.shape[0] ** 2
+STATE_SIZE = np.prod(env.observation_space.shape)
 EXPERIENCE_MEMORY_SIZE = 10_000
 EXPERIENCE_MEMORY_BATCH_SIZE = 32
 TRAIN_PERIOD = 100
@@ -90,9 +90,9 @@ for ep in range(NUM_OF_EPISODES):
     while not done:
 
         # act
-        epsilon = 0.01 + (1 - 0.01) * np.exp(-1. * epsilon_step * 0.001)
+        epsilon = 0.01 + (1 - 0.01) * np.exp(-1. * epsilon_step * 0.0001)
         epsilon_step += 1
-        if np.random.rand() < epsilon:
+        if np.random.rand() > epsilon:
             q = target_model.predict(curr_state.reshape(-1,STATE_SIZE))
             action = np.argmax(q[0])
         else:
